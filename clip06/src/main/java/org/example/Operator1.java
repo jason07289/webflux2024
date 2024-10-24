@@ -30,7 +30,7 @@ public class Operator1 {
                 .log();
     }
 
-    public Flux<Integer> createFluxFlatMap2(){
+    public Flux<Integer>  createFluxFlatMap2(){
         return Flux.range(1, 9)
                 .flatMap(i -> Flux.range(1, 9)
                         .map(j -> {
