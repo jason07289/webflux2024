@@ -11,7 +11,7 @@ import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Component;
 
-@Component
+@Configuration
 @Slf4j
 @RequiredArgsConstructor
 @EnableR2dbcRepositories

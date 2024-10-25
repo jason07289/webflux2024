@@ -4,6 +4,7 @@ import com.example.webflux1.repository.User;
 import com.example.webflux1.repository.UserR2dbcRepository;
 import com.example.webflux1.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -13,6 +14,7 @@ import reactor.core.publisher.Mono;
 public class UserService {
     private final UserRepository userRepository;
     private final UserR2dbcRepository userR2dbcRepository;
+    private final ReactiveRedisTemplate<String, User> reactiveRedisTemplate;
     public Mono<User> create(String name, String email) {
         return userR2dbcRepository.save(User.builder()
                 .name(name)
