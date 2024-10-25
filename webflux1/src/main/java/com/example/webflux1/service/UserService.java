@@ -33,6 +33,9 @@ public class UserService {
         return userR2dbcRepository.deleteById(id);
 //         Mono.just(1);
     }
+    public Mono<Void> deleteByName(String name) {
+        return userR2dbcRepository.deleteByName(name);
+    }
 
     public Mono<User> update(Long id, String name, String email) {
         return userR2dbcRepository.findById(id)
@@ -47,5 +50,7 @@ public class UserService {
                     return userR2dbcRepository.save(u);
                 });
     }
+
+
 
 }
