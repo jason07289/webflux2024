@@ -22,7 +22,8 @@ public class PostController {
 
     @GetMapping("/search")
     public Flux<PostResponse> getMultiplePosts(@RequestParam(name = "ids") List<Long> ids) {
-        return postService.getMultiplePostContent(ids);
+        return postService.getParallelMultiplePostContent(ids);
 
     }
+
 }
