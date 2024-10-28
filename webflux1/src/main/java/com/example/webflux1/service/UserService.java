@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -27,12 +29,31 @@ public class UserService {
         return userR2dbcRepository.findAll();
     }
 
+    private String getUserCacheKey(Long id) {
+        return "users:%d".formatted(id);
+    }
+
     public Mono<User> findById(Long id){
-        return userR2dbcRepository.findById(id);
+        //redis 조회
+        return reactiveRedisTemplate.opsForValue()
+                //값이 있으면 바로 get해서 응답
+                .get("users:%d".formatted(id))
+                //없다면 DB 조회하고 결과를 redis에 저장
+                .switchIfEmpty(userR2dbcRepository.findById(id)
+                        .flatMap(u -> reactiveRedisTemplate.opsForValue()
+                                .set(this.getUserCacheKey(id), u, Duration.ofSeconds(30))
+                                .then(Mono.just(u)
+                                )
+                        )
+                );
+
+//        return userR2dbcRepository.findById(id);
     }
 
     public Mono<Void> deleteById(Long id) {
-        return userR2dbcRepository.deleteById(id);
+        return userR2dbcRepository.deleteById(id)
+                .then(reactiveRedisTemplate.unlink(getUserCacheKey(id)))
+                .then(Mono.empty());
 //         Mono.just(1);
     }
     public Mono<Void> deleteByName(String name) {
@@ -50,7 +71,11 @@ public class UserService {
                     u.setName(name);
                     u.setEmail(email);
                     return userR2dbcRepository.save(u);
-                });
+                })
+                //unlink는 비동기식으로 삭제하는 로직
+                .flatMap(u -> reactiveRedisTemplate.unlink(getUserCacheKey(id))
+                        .then(Mono.just(u))
+                );
     }
 
 
