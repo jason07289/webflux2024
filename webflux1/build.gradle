@@ -32,13 +32,22 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
 	implementation 'io.asyncer:r2dbc-mysql:1.0.2'// boot3  / spi 1.0.0
+
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
+	testImplementation 'io.projectreactor.tools:blockhound:1.0.8.RELEASE'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
+tasks.withType(Test).all { {
+	if(JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_13)) {
+		jvmArgs += [
+		        "-XX:+AllowRedefinitionToAddDeleteMethods"
+		]
+	}
+}}
