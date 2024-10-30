@@ -16,7 +16,7 @@ public class ApplicationAdvice {
 
     }
 
-    public record ServerExceptionResponse(String code, String reason) {
+    private record ServerExceptionResponse(String code, String reason) {
 
     }
 }
