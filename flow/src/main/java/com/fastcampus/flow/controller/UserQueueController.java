@@ -1,13 +1,18 @@
 package com.fastcampus.flow.controller;
 
+import com.fastcampus.flow.constant.AppKeys;
 import com.fastcampus.flow.dto.AllowUserResponse;
 import com.fastcampus.flow.dto.AllowedUserResponse;
 import com.fastcampus.flow.dto.RankNumberResponse;
 import com.fastcampus.flow.dto.RegisterUserResponse;
 import com.fastcampus.flow.service.UserQueueService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/v1/queue")
@@ -41,5 +46,22 @@ public class UserQueueController {
                                                 @RequestParam(name="user_id") Long userId ) {
         return userQueueService.getRank(queue, userId)
                 .map(RankNumberResponse::new);
+    }
+
+    @GetMapping("/touch")
+    public Mono<String> touch(@RequestParam(name="queue", defaultValue = "default") String queue,
+                              @RequestParam(name="user_id") Long userId,
+                              ServerWebExchange exchange) {
+        return Mono.defer(()->userQueueService.generateToken(queue,userId))
+                .map(token -> {
+                    exchange.getResponse().addCookie(
+                            ResponseCookie.from(AppKeys.TOKEN.KEY.formatted(queue), token)
+                                    .maxAge(Duration.ofSeconds(300))
+                                    .path("/")
+                                    .build()
+                    );
+                    return token;
+                });
+
     }
 }
