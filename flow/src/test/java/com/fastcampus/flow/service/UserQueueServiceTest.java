@@ -2,10 +2,12 @@ package com.fastcampus.flow.service;
 
 import com.fastcampus.flow.EmbeddedRedis;
 import com.fastcampus.flow.exception.ApplicationException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.test.StepVerifier;
@@ -21,6 +23,13 @@ class UserQueueServiceTest {
 
     @Autowired
     private ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
+
+    @BeforeEach
+    public void beforeEach() {
+        ReactiveRedisConnection redisConnection = reactiveRedisTemplate.getConnectionFactory().getReactiveConnection();
+        redisConnection.serverCommands().flushAll().subscribe();
+    }
+
     @Test
     void registerQueue() {
         StepVerifier.create(userQueueService.registerQueue("default", 100L))
@@ -44,10 +53,69 @@ class UserQueueServiceTest {
     }
 
     @Test
+    void emptyAllowUser() {
+        StepVerifier.create(userQueueService.allowUser("default", 3L))
+                .expectNext(0L)
+                .verifyComplete();
+    }
+
+    @Test
     void allowUser() {
+        StepVerifier.create(userQueueService.registerQueue("default", 100L)
+                .then(userQueueService.registerQueue("default", 101L))
+                .then(userQueueService.registerQueue("default", 102L))
+                .then(userQueueService.allowUser("default", 2L))
+                )
+                .expectNext(2L)
+                .verifyComplete();
+    }
+
+    @Test
+    void allowUser2() {
+        StepVerifier.create(userQueueService.registerQueue("default", 100L)
+                        .then(userQueueService.registerQueue("default", 101L))
+                        .then(userQueueService.registerQueue("default", 102L))
+                        .then(userQueueService.allowUser("default", 5L))
+                )
+                .expectNext(3L)
+                .verifyComplete();
+    }
+
+    @Test
+    void allowUserAfterRegisterQueue() {
+        StepVerifier.create(userQueueService.registerQueue("default", 100L)
+                        .then(userQueueService.registerQueue("default", 101L))
+                        .then(userQueueService.registerQueue("default", 102L))
+                        .then(userQueueService.allowUser("default", 3L))
+                        .then(userQueueService.registerQueue("default", 200L))
+                )
+                .expectNext(1L)
+                .verifyComplete();
+    }
+    @Test
+    void isNotAllowed() {
+        StepVerifier.create(userQueueService.isAllowed("default", 100L))
+                .expectNext(false)
+                .verifyComplete();
+    }
+
+    @Test
+    void isNotAllowed2() {
+        StepVerifier.create(userQueueService.registerQueue("default", 100L)
+                        .then(userQueueService.allowUser("default", 3L))
+                        .then(userQueueService.isAllowed("default", 101L))
+                )
+                .expectNext(false)
+                .verifyComplete();
     }
 
     @Test
     void isAllowed() {
+        StepVerifier.create(userQueueService.registerQueue("default", 100L)
+                        .then(userQueueService.allowUser("default", 3L))
+                        .then(userQueueService.isAllowed("default", 100L))
+                )
+                .expectNext(true)
+                .verifyComplete();
     }
 }
