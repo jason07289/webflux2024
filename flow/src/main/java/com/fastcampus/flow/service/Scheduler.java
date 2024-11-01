@@ -15,7 +15,7 @@ import reactor.util.function.Tuples;
 @RequiredArgsConstructor
 public class Scheduler {
     private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
-    private final UserQueueService userQueueService;
+    private final TransferQueueService transferQueueService;
 
     @Value("${scheduler.enabled}")
     private Boolean scheduling = false;
@@ -23,16 +23,16 @@ public class Scheduler {
 
 
     @Scheduled(initialDelay = 5000, fixedDelay = 10000)
-    public void scheduledAllowUser() {
+    public void scheduledAllowResource() {
         if(!scheduling) {
             return;
         }
         log.info("scheduling...");
-        var maxAllowUserCount = 3L;
+        var maxAllowResourceCount = 3L;
         reactiveRedisTemplate.scan(ScanOptions.scanOptions().match(AppKeys.WAITING_FOR_SCAN.KEY).count(100).build())
                 .map(key->key.split(":")[2])
-                .flatMap(queue -> userQueueService.allowUser(queue, maxAllowUserCount).map(allowed -> Tuples.of(queue, allowed)))
-                .doOnNext(t -> log.info("Tried %d and allowed %d members of %s queue".formatted(maxAllowUserCount, t.getT2(), t.getT1())))
+                .flatMap(queue -> transferQueueService.allowResource(queue, maxAllowResourceCount).map(allowed -> Tuples.of(queue, allowed)))
+                .doOnNext(t -> log.info("Tried %d and allowed %d resources of %s queue".formatted(maxAllowResourceCount, t.getT2(), t.getT1())))
                 .subscribe();
     }
 }

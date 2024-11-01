@@ -25,10 +25,10 @@ public class WebsiteApplication {
 
 	@GetMapping("/")
 	public String index(@RequestParam(name = "queue", defaultValue = "default") String queue,
-						@RequestParam(name = "user_id") Long userId,
+						@RequestParam(name = "resource_id") Long resourceId,
 						HttpServletRequest request) {
 		var cookies = request.getCookies();
-		var cookieName = "user-queue-%s-token".formatted(queue);
+		var cookieName = "resource-queue-%s-token".formatted(queue);
 		var token = "";
 		if (cookies != null) {
 			Optional<Cookie> cookie = Arrays.stream(cookies).filter(i -> i.getName().equalsIgnoreCase(cookieName)).findFirst();
@@ -39,22 +39,22 @@ public class WebsiteApplication {
 				.fromHttpUrl("http://127.0.0.1:9010")
 				.path("/api/v1/queue/allowed")
 				.queryParam("queue", queue)
-				.queryParam("user_id", userId)
+				.queryParam("resource_id", resourceId)
 				.queryParam("token", token)
 				.encode()
 				.build()
 				.toUri();
-		ResponseEntity<AllowedUserResponse> response = restTemplate.getForEntity(uri, AllowedUserResponse.class);
+		ResponseEntity<AllowedResourceResponse> response = restTemplate.getForEntity(uri, AllowedResourceResponse.class);
 		if (response.getBody() == null || !response.getBody().allowed()) {
-			return "redirect:http://127.0.0.1:9010/waiting-room?user_id=%d&redirect_url=%s"
-					.formatted(userId,
-							"http://127.0.0.1:9000?user_id=%d".formatted(userId)
+			return "redirect:http://127.0.0.1:9010/waiting-room?resource_id=%d&redirect_url=%s"
+					.formatted(resourceId,
+							"http://127.0.0.1:9000?resource_id=%d".formatted(resourceId)
 					);
 		}
 
 		return "index";
 	}
-	private record AllowedUserResponse (Boolean allowed) {
+	private record AllowedResourceResponse(Boolean allowed) {
 
 	}
 }

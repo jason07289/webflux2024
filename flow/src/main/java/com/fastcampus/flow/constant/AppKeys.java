@@ -6,10 +6,10 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum AppKeys {
-    WAITING("users:queue:%s:wait"),
-    PROCEED("users:queue:%s:proceed"),
-    WAITING_FOR_SCAN("users:queue:*:wait"),
-    TOKEN("user-queue-%s-token"),
+    WAITING("resources:queue:%s:wait"),
+    PROCEED("resources:queue:%s:proceed"),
+    WAITING_FOR_SCAN("resources:queue:*:wait"),
+    TOKEN("resource-queue-%s-token"),
     ;
 
     public final String KEY;

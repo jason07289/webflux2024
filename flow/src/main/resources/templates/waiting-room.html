@@ -2,7 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="utf-8">
-  <title>접속자대기열시스템</title>
+  <title>바인딩 대기열</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -26,10 +26,12 @@
 </head>
 <body>
 <div class="message">
-  <h1>접속량이 많습니다.</h1>
-  <span>현재 대기 순번 </span><span id="number">[[${number}]]</span><span> 입니다.</span>
+  <h1>처리량이 많습니다.</h1>
+  <span>현재 대기중인 이관건은 </span><span id="number">[[${number}]]</span><span>건 입니다.</span>
   <br/>
-  <p>서버의 접속량이 많아 시간이 걸릴 수 있습니다.</p>
+  <span>자원번호 "</span><span id="resourceId">[[${resourceId}]]</span><span>" 번은 아직 대기중입니다.</span>
+  <br/>
+  <p>이관된 자원이 많아 시간이 걸릴 수 있습니다.</p>
   <p>잠시만 기다려주세요.</p>
   <p id="updated"></p>
   <br/>
@@ -37,8 +39,8 @@
 <script>
   function fetchWaitingRank() {
     const queue = '[[${queue}]]';
-    const userId = '[[${userId}]]';
-    const queryParam = new URLSearchParams({queue: queue, user_id: userId});
+    const resourceId = '[[${resourceId}]]';
+    const queryParam = new URLSearchParams({queue: queue, resource_id: resourceId});
     fetch('/api/v1/queue/rank?' + queryParam)
             .then(response => response.json())
             .then(data => {

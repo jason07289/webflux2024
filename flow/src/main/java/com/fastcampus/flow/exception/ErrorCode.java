@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ErrorCode {
-    QUEUE_ALREADY_REGISTERED_USER(HttpStatus.CONFLICT, "UQ-0001", "Already Registered in queue"),
+    QUEUE_ALREADY_REGISTERED(HttpStatus.CONFLICT, "UQ-0001", "Already Registered in queue"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "UQ-1001", "error: %s"),
     ;
     private final HttpStatus httpStatus;

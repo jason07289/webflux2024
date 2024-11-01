@@ -1,9 +1,8 @@
 package com.fastcampus.flow.controller;
 
 import com.fastcampus.flow.constant.AppKeys;
-import com.fastcampus.flow.service.UserQueueService;
+import com.fastcampus.flow.service.TransferQueueService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpCookie;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,11 +13,11 @@ import reactor.core.publisher.Mono;
 @Controller
 @RequiredArgsConstructor
 public class WaitingRoomController {
-    private final UserQueueService userQueueService;
+    private final TransferQueueService transferQueueService;
 
     @GetMapping("/waiting-room")
     Mono<Rendering> waitingRoomPage(@RequestParam(name = "queue", defaultValue = "default") String queue,
-                                    @RequestParam(name = "user_id") Long userId,
+                                    @RequestParam(name = "resource_id") Long resourceId,
                                     @RequestParam(name = "redirect_url") String redirectUrl,
                                     ServerWebExchange exchange) {
         var key = AppKeys.TOKEN.KEY.formatted(queue);
@@ -27,15 +26,15 @@ public class WaitingRoomController {
 
         // 1. 입장이 허용되어 page redirect 가능?
         // 2, 어디로 이동?
-        return userQueueService.isAllowedByToken(queue, userId, token)
+        return transferQueueService.isAllowedByToken(queue, resourceId, token)
                 .filter(allowed -> allowed)
                 .flatMap(allowed -> Mono.just(Rendering.redirectTo(redirectUrl).build()))
-                .switchIfEmpty(userQueueService.registerQueue(queue, userId)
-                        .onErrorResume(ex -> userQueueService.getRank(queue, userId))
+                .switchIfEmpty(transferQueueService.registerQueue(queue, resourceId)
+                        .onErrorResume(ex -> transferQueueService.getRank(queue, resourceId))
                         .map(rank ->
                                 Rendering.view("waiting-room.html")
                                         .modelAttribute("number", rank)
-                                        .modelAttribute("userId", userId)
+                                        .modelAttribute("resourceId", resourceId)
                                         .modelAttribute("queue", queue)
                                         .build()
                         )
